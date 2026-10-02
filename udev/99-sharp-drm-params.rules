@@ -1,0 +1,2 @@
+ACTION=="add", SUBSYSTEM=="module", KERNEL=="sharp_drm", RUN+="/bin/sh -c 'chgrp -R video /sys/module/sharp_drm/parameters && chmod -R g+rw /sys/module/sharp_drm/parameters'"
+ACTION=="add", SUBSYSTEM=="backlight", KERNEL=="backlight", ENV{ID_BACKLIGHT_CLAMP}="false", RUN+="/bin/sh -c 'chgrp video /sys/class/backlight/%k/brightness /sys/class/backlight/%k/bl_power && chmod g+rw /sys/class/backlight/%k/brightness /sys/class/backlight/%k/bl_power'"

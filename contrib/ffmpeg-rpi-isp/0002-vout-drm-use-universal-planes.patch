@@ -1,0 +1,17 @@
+--- a/libavdevice/drm_vout.c
++++ b/libavdevice/drm_vout.c
+@@ -489,6 +489,14 @@ static int drm_vout_init(struct AVFormatContext * s)
+         return rv;
+     }
+ 
++    if (drmSetClientCap(de->drm_fd, DRM_CLIENT_CAP_UNIVERSAL_PLANES, 1) != 0)
++    {
++        rv = AVERROR(errno);
++        av_log(s, AV_LOG_ERROR, "Failed to enable universal DRM planes: %s\n",
++               av_err2str(rv));
++        goto fail_close;
++    }
++
+     if (find_crtc(s, de->drm_fd, &de->setup, &de->con_id) != 0)
+     {
+         av_log(s, AV_LOG_ERROR, "failed to find valid mode\n");

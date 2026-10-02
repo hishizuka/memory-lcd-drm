@@ -1,0 +1,11 @@
+[Unit]
+Description=Sharp DRM fbdev initialization
+After=systemd-modules-load.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/libexec/sharp-drm/mip-redraw auto 30 --initialize-red-once
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

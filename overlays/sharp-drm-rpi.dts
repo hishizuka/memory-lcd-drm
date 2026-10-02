@@ -1,0 +1,122 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "brcm,bcm2835", "brcm,bcm2708", "brcm,bcm2709";
+
+	fragment@0 {
+		target = <&spi0>;
+		__overlay__ {
+			status = "okay";
+
+			spidev@0{
+				status = "disabled";
+			};
+
+			spidev@1{
+				status = "disabled";
+			};
+		};
+	};
+
+	fragment@1 {
+                target = <&spi0_pins>;
+                __overlay__ {
+                        brcm,pins = <0x0a 0x0b>; /* skipping bcm9 MISO */
+                };
+        };
+
+	fragment@2 {
+		target = <&gpio>;
+		__overlay__ {
+			sharp_pins: sharp_pins {
+				brcm,pins = <24 25>;
+				brcm,function = <1 1>; /* out */
+			};
+
+			sharp_backlight_pwm_pin: sharp_backlight_pwm_pin {
+				brcm,pins = <18>;
+				brcm,function = <2>; /* alt5: PWM0 on GPIO18 */
+				brcm,pull = <0>;
+			};
+		};
+	};
+
+	fragment@3 {
+		target = <&pwm>;
+		__dormant__ {
+			pinctrl-names = "default";
+			pinctrl-0 = <&sharp_backlight_pwm_pin>;
+			status = "okay";
+		};
+	};
+
+	fragment@4 {
+		target = <&spi0>;
+		__overlay__ {
+			/* needed to avoid dtc warning */
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			sharp_drm: sharp_drm@0{
+				compatible = "sharp-drm";
+				reg = <0>;
+				pinctrl-names = "default";
+				pinctrl-0 = <&sharp_pins>;
+
+				vcom-gpios = <&gpio 24 0>;
+				disp-gpios = <&gpio 25 0>;
+
+				spi-cs-high = <1>;
+				spi-max-frequency = <4000000>;
+				buswidth = <8>;
+				colors = <8>;
+				panel-type = "jdi";
+				width = <400>;
+				height = <240>;
+				backlight-default-brightness = <255>;
+				/* Optional dual-panel support (CE0 + CE1) */
+				/* dual-panel; */
+				debug = <0>;
+			};
+
+			sharp_drm_secondary: sharp_drm_aux@1{
+				compatible = "sharp-drm-aux";
+				reg = <1>;
+				spi-cs-high = <1>;
+				spi-max-frequency = <4000000>;
+				status = "disabled";
+			};
+		};
+	};
+
+	fragment@5 {
+		target = <&sharp_drm>;
+		sharp_backlight_pwm: __dormant__ {
+			pwms = <&pwm 0 15625000 0>;
+			pwm-names = "backlight";
+		};
+	};
+
+	__overrides__ {
+		colors = <&sharp_drm>, "colors:0";
+		panel_type = <&sharp_drm>, "panel-type";
+		width = <&sharp_drm>, "width:0";
+		height = <&sharp_drm>, "height:0";
+		spi_speed = <&sharp_drm>, "spi-max-frequency:0";
+		spi_speed_secondary = <&sharp_drm_secondary>, "spi-max-frequency:0";
+		backlight_pwm = <0>, "+3+5";
+		backlight_pin = <0>, "+3+5",
+				<&sharp_backlight_pwm_pin>, "brcm,pins:0";
+		backlight_pwm_func = <0>, "+3+5",
+				<&sharp_backlight_pwm_pin>, "brcm,function:0";
+		backlight_pwm_channel = <0>, "+3+5",
+				<&sharp_backlight_pwm>, "pwms:4";
+		backlight_pwm_period_ns = <0>, "+3+5",
+				<&sharp_backlight_pwm>, "pwms:8";
+		backlight_default_brightness = <0>, "+3+5",
+				<&sharp_drm>, "backlight-default-brightness:0";
+		dual_panel = <&sharp_drm>, "dual-panel?",
+			     <&sharp_drm_secondary>, "status=okay";
+	};
+};

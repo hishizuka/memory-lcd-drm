@@ -1,0 +1,28 @@
+--- a/libavdevice/fbdev_enc.c
++++ b/libavdevice/fbdev_enc.c
+@@ -111,7 +111,8 @@ static int fbdev_write_packet(AVFormatContext *h, AVPacket *pkt)
+     enum AVPixelFormat video_pix_fmt = par->format;
+     int video_width = par->width;
+     int video_height = par->height;
+-    int bytes_per_pixel = ((par->bits_per_coded_sample + 7) >> 3);
++    int bytes_per_pixel = (av_get_padded_bits_per_pixel(
++                               av_pix_fmt_desc_get(video_pix_fmt)) + 7) >> 3;
+     int src_line_size = video_width * bytes_per_pixel;
+     int i;
+ 
+@@ -121,7 +121,14 @@ static int fbdev_write_packet(AVFormatContext *h, AVPacket *pkt)
+ 
+     fb_pix_fmt = ff_get_pixfmt_from_fb_varinfo(&fbdev->varinfo);
+ 
+-    if (fb_pix_fmt != video_pix_fmt) {
++    /*
++     * BGR0 and BGRA have the same byte order and size.  A framebuffer does
++     * not consume the unused/alpha byte, so avoid a redundant full-frame
++     * conversion when a V4L2 decoder exports BGR0 for a BGRA framebuffer.
++     */
++    if (fb_pix_fmt != video_pix_fmt &&
++        !(fb_pix_fmt == AV_PIX_FMT_BGRA &&
++          video_pix_fmt == AV_PIX_FMT_BGR0)) {
+         av_log(h, AV_LOG_ERROR, "Pixel format %s is not supported, use %s\n",
+                av_get_pix_fmt_name(video_pix_fmt), av_get_pix_fmt_name(fb_pix_fmt));
+         return AVERROR(EINVAL);

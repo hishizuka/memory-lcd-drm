@@ -1,3 +1,7 @@
+/ref/
+/tmp/
+/.claude/
+.DS_Store
 *.cmd
 *.o
 *.mod
@@ -8,3 +12,10 @@
 *.symvers
 *.d
 *.d.*
+*.pyc
+__pycache__/
+CLAUDE.md
+AGENTS.md
+/contrib/ffmpeg-rpi-isp/build-ffmpeg-rpi-isp/
+
+/tests/.build/

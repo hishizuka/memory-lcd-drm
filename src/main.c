@@ -6,166 +6,107 @@
  */
 
 #include <linux/module.h>
-#include <linux/platform_device.h>
 #include <linux/spi/spi.h>
+#include <linux/of.h>
+#include <linux/string.h>
 
-#include "drm_iface.h"
-#include "params_iface.h"
-#include "ioctl_iface.h"
+#include "sharp_drm.h"
 
-// QEMU mode: write display data to a serial device instead of SPI
-static char *qemu_display_dev = NULL;
-module_param(qemu_display_dev, charp, 0444);
-MODULE_PARM_DESC(qemu_display_dev, "Serial device for QEMU display output (e.g. /dev/ttyS2)");
+static bool sharp_drm_spi_is_aux(const struct spi_device *spi)
+{
+	const struct spi_device_id *id;
 
-static struct platform_device *qemu_pdev = NULL;
+	if (!spi) {
+		return false;
+	}
 
-static int sharp_memory_probe(struct spi_device *spi)
+	id = spi_get_device_id(spi);
+	if (id && !strcmp(id->name, "sharp-drm-aux")) {
+		return true;
+	}
+
+	if (spi->dev.of_node
+		&& of_device_is_compatible(spi->dev.of_node, "sharp-drm-aux")) {
+		return true;
+	}
+
+	return false;
+}
+
+static int sharp_drm_spi_probe(struct spi_device *spi)
 {
 	int ret;
 
-	printk(KERN_INFO "sharp_memory: entering sharp_memory_probe\n");
+	dev_dbg(&spi->dev, "probing SPI device\n");
 
-	if ((ret = drm_probe(spi))) {
+	/* Check if this is the secondary (auxiliary) device. */
+	if (sharp_drm_spi_is_aux(spi)) {
+		dev_dbg(&spi->dev, "probing secondary SPI device (CS%u)\n",
+			spi->chip_select[0]);
+		sharp_drm_register_secondary_spi(spi);
+		return 0;
+	}
+
+	if ((ret = sharp_drm_probe(spi))) {
 		return ret;
 	}
 
-	if ((ret = params_probe())) {
-		return ret;
-	}
-
-	if ((ret = ioctl_probe())) {
-		return ret;
-	}
-
-	printk(KERN_INFO "sharp_memory: successful probe\n");
+	dev_dbg(&spi->dev, "probe complete\n");
 
 	return 0;
 }
 
-static void sharp_memory_remove(struct spi_device *spi)
+static void sharp_drm_spi_remove(struct spi_device *spi)
 {
-	drm_clear_overlays();
-
-	ioctl_remove();
-	params_remove();
-	drm_remove(spi);
+	if (sharp_drm_spi_is_aux(spi)) {
+		sharp_drm_unregister_secondary_spi(spi);
+		return;
+	}
+	sharp_drm_remove(spi);
 }
 
-static void sharp_memory_shutdown(struct spi_device *spi)
+static void sharp_drm_spi_shutdown(struct spi_device *spi)
 {
-	sharp_memory_remove(spi);
+	if (sharp_drm_spi_is_aux(spi)) {
+		sharp_drm_unregister_secondary_spi(spi);
+		return;
+	}
+	sharp_drm_shutdown(spi);
 }
 
-static struct spi_driver sharp_memory_spi_driver = {
+static const struct of_device_id sharp_drm_of_match[] = {
+	{ .compatible = "sharp-drm" },
+	{ .compatible = "sharp-drm-aux" },
+	{ }
+};
+MODULE_DEVICE_TABLE(of, sharp_drm_of_match);
+
+static const struct spi_device_id sharp_drm_spi_id[] = {
+	{ "sharp-drm", 0 },
+	{ "sharp-drm-aux", 0 },
+	{ }
+};
+MODULE_DEVICE_TABLE(spi, sharp_drm_spi_id);
+
+static struct spi_driver sharp_drm_spi_driver = {
 	.driver = {
 		.name = "sharp-drm",
+		.of_match_table = sharp_drm_of_match,
 	},
-	.probe = sharp_memory_probe,
-	.remove = sharp_memory_remove,
-	.shutdown = sharp_memory_shutdown,
+	.id_table = sharp_drm_spi_id,
+	.probe = sharp_drm_spi_probe,
+	.remove = sharp_drm_spi_remove,
+	.shutdown = sharp_drm_spi_shutdown,
 };
+module_spi_driver(sharp_drm_spi_driver);
 
-static int __init sharp_memory_init(void)
-{
-	int ret;
-
-	if (qemu_display_dev) {
-		printk(KERN_INFO "sharp_memory: QEMU mode, serial device: %s\n",
-			qemu_display_dev);
-
-		qemu_pdev = platform_device_alloc("sharp-drm-qemu", 0);
-		if (!qemu_pdev)
-			return -ENOMEM;
-
-		ret = platform_device_add(qemu_pdev);
-		if (ret) {
-			platform_device_put(qemu_pdev);
-			return ret;
-		}
-
-		ret = drm_probe_qemu(&qemu_pdev->dev, qemu_display_dev);
-		if (ret)
-			goto err_pdev;
-
-		ret = params_probe();
-		if (ret)
-			goto err_drm;
-
-		ret = ioctl_probe();
-		if (ret)
-			goto err_params;
-
-		return 0;
-
-err_params:
-		params_remove();
-err_drm:
-		drm_remove_qemu(&qemu_pdev->dev);
-err_pdev:
-		platform_device_del(qemu_pdev);
-		platform_device_put(qemu_pdev);
-		return ret;
-	}
-
-	return spi_register_driver(&sharp_memory_spi_driver);
-}
-
-static void __exit sharp_memory_exit(void)
-{
-	if (qemu_display_dev && qemu_pdev) {
-		ioctl_remove();
-		params_remove();
-		drm_remove_qemu(&qemu_pdev->dev);
-		platform_device_del(qemu_pdev);
-		platform_device_put(qemu_pdev);
-	} else {
-		spi_unregister_driver(&sharp_memory_spi_driver);
-	}
-}
-
-module_init(sharp_memory_init);
-module_exit(sharp_memory_exit);
-
-MODULE_VERSION("1.7");
+MODULE_VERSION("2.0.0");
 MODULE_DESCRIPTION("Sharp Memory LCD DRM driver");
 MODULE_AUTHOR("Andrew D'Angelo");
 MODULE_LICENSE("GPL");
 
-void sharp_memory_set_invert(int setting)
+int sharp_memory_set_invert(int setting)
 {
-	params_set_mono_invert(setting);
+	return params_set_mono_invert(setting);
 }
 EXPORT_SYMBOL_GPL(sharp_memory_set_invert);
-
-void* sharp_memory_add_overlay(int x, int y, int width, int height,
-	unsigned char const* pixels)
-{
-	return drm_add_overlay(x, y, width, height, pixels);
-}
-EXPORT_SYMBOL_GPL(sharp_memory_add_overlay);
-
-void sharp_memory_remove_overlay(void* entry)
-{
-	drm_remove_overlay(entry);
-}
-EXPORT_SYMBOL_GPL(sharp_memory_remove_overlay);
-
-void* sharp_memory_show_overlay(void* storage)
-{
-	return drm_show_overlay(storage);
-}
-EXPORT_SYMBOL_GPL(sharp_memory_show_overlay);
-
-void sharp_memory_hide_overlay(void* display)
-{
-	drm_hide_overlay(display);
-}
-EXPORT_SYMBOL_GPL(sharp_memory_hide_overlay);
-
-void sharp_memory_clear_overlays(void)
-{
-	drm_clear_overlays();
-}
-EXPORT_SYMBOL_GPL(sharp_memory_clear_overlays);
-
