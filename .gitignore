@@ -19,3 +19,5 @@ AGENTS.md
 /contrib/ffmpeg-rpi-isp/build-ffmpeg-rpi-isp/
 
 /tests/.build/
+/scripts/mip-redraw
+/contrib/qml-dmabuf/libsharp_presenter.so

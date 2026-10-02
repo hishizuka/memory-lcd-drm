@@ -145,3 +145,16 @@ FFmpegが古い待機frameを新しいframeへ置換するため、driverがcomm
 Sharp DRMドライバーは引き続きframebuffer全体への書込みを受け付け、
 パネルを完全行単位だけで更新します。このFFmpegパッチによって任意ピクセル
 更新が追加されることはありません。
+
+## ライセンスと出典
+
+このディレクトリのスクリプトとパッチには、リポジトリの
+[GPL-2.0-or-later](../../LICENSE) を適用します。ビルド時に取得する FFmpeg、
+Raspberry Pi/Debian のパッチ、実行用ライブラリには、それぞれの上流ライセンスが
+適用されます。取得 URL と SHA-256 は `build-armhf.sh` に記録しています。
+
+FFmpeg は `--enable-gpl` 付きでビルドするため、生成される FFmpeg には
+GPL-2.0-or-later が適用されます。
+[FFmpeg のライセンス説明](https://ffmpeg.org/legal.html) と
+[Raspberry Pi の FFmpeg ソースアーカイブ](https://archive.raspberrypi.com/debian/pool/main/f/ffmpeg/) も参照してください。
+FFmpeg バイナリと取得した実行用ライブラリは、本リポジトリのリリースには同梱しません。

@@ -1,2 +1,3 @@
-ACTION=="add", SUBSYSTEM=="module", KERNEL=="sharp_drm", RUN+="/bin/sh -c 'chgrp -R video /sys/module/sharp_drm/parameters && chmod -R g+rw /sys/module/sharp_drm/parameters'"
+# Keep load-time and read-only parameters read-only for the video group.
+ACTION=="add", SUBSYSTEM=="module", KERNEL=="sharp_drm", RUN+="/bin/sh -c 'chgrp -R video /sys/module/sharp_drm/parameters && find /sys/module/sharp_drm/parameters -maxdepth 1 -type f -perm -0200 -exec chmod g+rw {} +'"
 ACTION=="add", SUBSYSTEM=="backlight", KERNEL=="backlight", ENV{ID_BACKLIGHT_CLAMP}="false", RUN+="/bin/sh -c 'chgrp video /sys/class/backlight/%k/brightness /sys/class/backlight/%k/bl_power && chmod g+rw /sys/class/backlight/%k/brightness /sys/class/backlight/%k/bl_power'"

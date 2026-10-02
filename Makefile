@@ -11,7 +11,7 @@ endif
 endif
 
 .PHONY: all modules clean clean_modules install uninstall install_modules \
-	install_aux install_dkms uninstall_dkms install_redraw_service \
+	install_aux install_dkms uninstall_dkms refresh_initramfs install_redraw_service \
 	uninstall_redraw_service presenter install_presenter uninstall_presenter
 
 # KERNELRELEASE is set by DKMS, can be different inside chroot
@@ -81,6 +81,9 @@ install_modules:
 	$(MAKE) -C '$(LINUX_DIR)' M='$(shell pwd)' modules_install
 	# Rebuild dependencies
 	depmod -A
+	$(MAKE) refresh_initramfs
+
+refresh_initramfs:
 	# Refresh initramfs when the current kernel boots from one.
 	@if command -v update-initramfs >/dev/null 2>&1 \
 		&& { [ -e /boot/initrd.img-$(KERNELRELEASE) ] \
@@ -106,12 +109,14 @@ install_dkms:
 	dkms install -m '$(DKMS_NAME)' -v '$(DKMS_VERSION)' \
 		-k '$(KERNELRELEASE)' --force
 	$(MAKE) install_aux
+	$(MAKE) refresh_initramfs
 
 uninstall_dkms:
 	-dkms remove -m '$(DKMS_NAME)' -v '$(DKMS_VERSION)' --all
 	rm -f '$(DKMS_SOURCE_DIR)/Makefile' '$(DKMS_SOURCE_DIR)/dkms.conf'
 	rm -f $(addprefix $(DKMS_SOURCE_DIR)/,$(DKMS_SOURCE_FILES))
 	-rmdir '$(DKMS_SOURCE_DIR)/src' '$(DKMS_SOURCE_DIR)'
+	$(MAKE) refresh_initramfs
 
 $(REDRAW_BINARY): $(REDRAW_SOURCE)
 	$(USER_CC) -O2 -Wall -Wextra -o $@ $<

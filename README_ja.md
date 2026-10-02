@@ -191,6 +191,9 @@ Raspberry Pi Zero 2 W と Raspberry Pi 5 です。初代 Raspberry Pi Zero
 （ARMv6、32bit）でも、同梱 FFmpeg による動画再生を検証しています。
 検証条件と結果は[FFmpeg の説明](contrib/ffmpeg-rpi-isp/README_ja.md)を参照してください。
 
+今回の公開時に確認した実機環境、導入・削除、表示処理の結果は
+[v2.0.0 の検証記録](docs/validation/v2.0.0.md) を参照してください。
+
 ## ユーザーガイド
 
 これは Linux カーネルにディスプレイデバイスを提供するカーネルデバイス
@@ -239,7 +242,8 @@ sudo make install_dkms
 ```
 
 新しいカーネルと対応ヘッダがインストールされるたびに、DKMS が
-`sharp-drm` を自動的に再ビルドしてインストールします。1回限りの手動
+`sharp-drm` を自動的に再ビルドしてインストールします。`make install_dkms` は
+対象カーネルの既存 initramfs がある場合、その内容も更新します。1回限りの手動
 インストールを行う場合は、従来どおり次を実行します:
 
 ```bash
@@ -818,6 +822,7 @@ sudo make uninstall
 ```
 
 手動で `make install` した場合は `sudo make uninstall` を実行します。
+`make uninstall_dkms` は対象カーネルの既存 initramfs も更新します。
 このターゲットは設定とオーバーレイを削除しますが、手動インストールした
 カーネルモジュールのファイル自体は削除しません。
 
@@ -1017,6 +1022,8 @@ python3 scripts/generate_rendering_comparison.py
 
 ## 参考資料
 
+* [ardangelo による元の Sharp Memory LCD DRM ドライバ](https://github.com/ardangelo/sharp-drm-driver) —
+  このリポジトリの fork 元である DRM ドライバ。元の著作権表記はソース内に保持しています。
 * [w4ilun による元の SPI/GPIO カーネルドライバ](https://github.com/w4ilun/Sharp-Memory-LCD-Kernel-Driver) —
   本ドライバの源流である fbdev モジュール。過去のピン配置とビルド手順の
   記録あり
@@ -1025,3 +1032,8 @@ python3 scripts/generate_rendering_comparison.py
 ## ライセンス
 
 GPL-2.0-or-later — [LICENSE](LICENSE) を参照。
+
+本リポジトリで作成したコード、ドキュメント、画像に適用します。
+写真とイラストの出典は [画像の出典](docs/ASSETS.md) を参照してください。
+任意機能の [FFmpeg ビルド](contrib/ffmpeg-rpi-isp/README_ja.md#ライセンスと出典) が
+取得する外部コンポーネントには、それぞれの上流ライセンスが適用されます。

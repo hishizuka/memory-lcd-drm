@@ -48,3 +48,9 @@ sudo make install
 
 同梱demoは自動行damageが既定です。`--full-damage`を指定すると、producerが指定する
 全画面damageとの比較ができます。
+
+## ライセンス
+
+presenter ライブラリとサンプルには、リポジトリの
+[GPL-2.0-or-later](../../LICENSE) を適用します。EGL、GBM、libdrm、Qt、Python は
+それぞれのライセンスに従い、本リポジトリには同梱しません。

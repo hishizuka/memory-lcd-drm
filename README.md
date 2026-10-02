@@ -197,6 +197,9 @@ FFmpeg has also been tested on the original Raspberry Pi Zero (ARMv6, 32-bit).
 See the [FFmpeg documentation](contrib/ffmpeg-rpi-isp/README.md) for test
 conditions and results.
 
+The [v2.0.0 verification record](docs/validation/v2.0.0.md) lists the hardware,
+installation/removal checks and display tests performed for this release.
+
 ## User Guide
 
 This kernel driver provides a display device to the Linux kernel.
@@ -245,7 +248,9 @@ sudo make install_dkms
 ```
 
 DKMS automatically rebuilds and installs `sharp-drm` whenever a new kernel
-and its matching headers are installed. For a one-time manual installation,
+and its matching headers are installed. `make install_dkms` also refreshes
+the selected kernel's existing initramfs, if present.
+For a one-time manual installation,
 use the following instead:
 
 ```bash
@@ -835,6 +840,8 @@ sudo make uninstall_dkms
 sudo make uninstall
 ```
 
+`make uninstall_dkms` refreshes the selected kernel's existing initramfs.
+
 For a manual `make install` installation, run `sudo make uninstall`.
 This target removes the configuration and overlay, but does not delete the
 manually installed kernel module file itself.
@@ -1043,6 +1050,9 @@ not part of this generation process.
 
 ## References
 
+* [ardangelo's original Sharp Memory LCD DRM driver](https://github.com/ardangelo/sharp-drm-driver) —
+  the upstream DRM driver from which this repository was forked. Original
+  copyright notices are preserved in the source files.
 * [Original SPI/GPIO kernel driver by w4ilun](https://github.com/w4ilun/Sharp-Memory-LCD-Kernel-Driver) —
   The fbdev module from which this driver originated, with historical pinouts
   and build instructions.
@@ -1051,3 +1061,8 @@ not part of this generation process.
 ## License
 
 GPL-2.0-or-later — see [LICENSE](LICENSE).
+
+Repository-created code, documentation and images use this license. See
+[image sources](docs/ASSETS.md) for photo and illustration credits. The optional
+[FFmpeg build](contrib/ffmpeg-rpi-isp/README.md#license-and-sources) downloads
+separately licensed upstream components.

@@ -62,3 +62,9 @@ python3 qml_presenter_demo.py \
 
 Pass `--full-damage` to compare producer-supplied full-screen damage with the
 default automatic row damage.
+
+## License
+
+The presenter library and examples use the repository's
+[GPL-2.0-or-later license](../../LICENSE). EGL, GBM, libdrm, Qt and Python
+dependencies retain their own licenses and are not bundled.

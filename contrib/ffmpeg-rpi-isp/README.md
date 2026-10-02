@@ -148,3 +148,17 @@ improvement. Those runs are not normal playback measurements.
 The Sharp DRM driver still accepts full framebuffer writes and updates the
 panel only in row units. This FFmpeg patch does not add arbitrary pixel
 updates.
+
+## License and sources
+
+This directory's scripts and patches use the repository's
+[GPL-2.0-or-later license](../../LICENSE). The build downloads FFmpeg and
+Raspberry Pi/Debian patches and runtime libraries; those components retain
+their upstream licenses. Download URLs and SHA-256 checksums are recorded in
+`build-armhf.sh`.
+
+FFmpeg is built with `--enable-gpl`, so the resulting FFmpeg build uses
+GPL-2.0-or-later. See [FFmpeg's licensing page](https://ffmpeg.org/legal.html)
+and [Raspberry Pi's FFmpeg source archive](https://archive.raspberrypi.com/debian/pool/main/f/ffmpeg/).
+No FFmpeg binaries or downloaded runtime libraries are included in this
+repository's release assets.
