@@ -8,7 +8,7 @@ A Linux DRM/KMS kernel driver for SPI memory LCD panels on Raspberry Pi,
 including Sharp monochrome Memory LCDs, JDI 8-color MIP panels, and AUO
 64-color MIP panels.
 
-<img src="docs/images/jdi_4.4inch.jpg" alt="A JDI 4.4-inch MIP LCD displaying a map" width="480">
+<img src="docs/images/jdi_4.4inch.jpg" alt="A JDI 4.4-inch MIP LCD displaying a map">
 
 A JDI 4.4-inch MIP LCD in use.
 
@@ -75,7 +75,7 @@ and `dtoverlay` configuration in `config.txt` without rebuilding the kernel.
 
 The panels below show differences in screen size, shape, and connectors.
 
-<img src="docs/images/panel-lineup.jpg" alt="Four memory LCD panels of different sizes and shapes" width="720">
+<img src="docs/images/panel-lineup.jpg" alt="Four memory LCD panels of different sizes and shapes">
 
 Top left: LS027B7DH01; bottom left: LPM027M128B; center: U340QBN01; right: LPM044M141A.
 
@@ -100,16 +100,16 @@ settings for each panel. U340QBN01 dual-panel mode forces `colors=64`.
 An AUO U340QBN01 (Bryton Rider S800) displaying a 3D map in 64 colors on a
 272x451 panel.
 
-<img src="docs/images/auo-u340qbn01-64color.jpg" alt="An AUO U340QBN01 in a portrait enclosure displaying 64 colors" width="360">
+<img src="docs/images/auo-u340qbn01-64color.jpg" alt="An AUO U340QBN01 in a portrait enclosure displaying 64 colors">
 
 Two of the same panels side by side form a 544x451 display.
 
-<img src="docs/images/dual-panel-544x451.jpg" alt="Two AUO U340QBN01 panels displaying a 544x451 image in 64 colors" width="720">
+<img src="docs/images/dual-panel-544x451.jpg" alt="Two AUO U340QBN01 panels displaying a 544x451 image in 64 colors">
 
 The back of the dual-panel board, showing a Raspberry Pi Zero W connected
 to two panels. This assembly photo does not show the individual signal connections.
 
-<img src="docs/images/hardware-overview.jpg" alt="The back of a board connecting a Raspberry Pi Zero W and two AUO panels" width="720">
+<img src="docs/images/hardware-overview.jpg" alt="The back of a board connecting a Raspberry Pi Zero W and two AUO panels">
 
 ## Connections and Pin Assignment
 
