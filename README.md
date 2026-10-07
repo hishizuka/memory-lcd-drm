@@ -578,6 +578,23 @@ the bytes per row for a given `colors` setting.
 Select a color mode supported by the panel. `sharp_mono` is fixed to 2 colors,
 and dual-panel mode to 64 colors; attempts to select another mode are rejected.
 
+**How ordered dithering works**
+
+Ordered dithering repeats fixed pixel patterns to create intermediate shades.
+On an 8-color panel, yellow and red pixels arranged in a 2×2 pattern appear
+orange when viewed from a distance.
+
+![Yellow and red pixels in 2×2 patterns: three shades for 27 apparent colors and five shades for 125 apparent colors](docs/images/ordered-dithering-en.png)
+
+* **3 shades / 27 apparent colors (`dither_algo=2`)**: Yellow, a 50/50
+  checkerboard, and red.
+* **5 shades / 125 apparent colors (`dither_algo=3`)**: Use 0, 1, 2, 3, or 4
+  red pixels in the four squares.
+
+Three levels per RGB channel give `3³ = 27` apparent colors; five levels give
+`5³ = 125`. Each pixel still uses the native eight colors. The bars below
+the patterns illustrate their apparent colors.
+
 ![Comparison of the original 3D map, 2-color, 8-color, and 64-color rendering with dithering](docs/images/rendering-modes.png)
 
 All images use the same 272x451 source and the driver's conversion code.
@@ -1043,12 +1060,15 @@ Requires Pillow and a C compiler. Run from the repository root:
 
 ```bash
 python3 scripts/generate_rendering_comparison.py
+python3 scripts/generate_ordered_dithering.py
 ```
 
 The comparison uses `docs/images/rendering-source.png` as its source and
 runs the actual conversion code in `src/render.c`. It does not reproduce a
 panel's particular color response or reflections. Hardware photographs are
 not part of this generation process.
+The ordered-dithering illustration also uses the actual converter for its
+27/125-color pixel layouts.
 
 ## References
 
