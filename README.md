@@ -915,6 +915,8 @@ other operations on a real display.
 
 ### Update Pipeline
 
+<img src="docs/images/update-pipeline.svg" alt="Framebuffer update flow from DRM damage through row conversion, desired/displayed comparison, two TX slots, and ordered SPI transfer">
+
 While SPI sends row data, the CPU can convert the next update.
 
 The update path is `sharp_drm_pipe_update()` -> `sharp_drm_fb_dirty()` ->

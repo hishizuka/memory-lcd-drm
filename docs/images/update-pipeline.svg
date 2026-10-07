@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 464" role="img" aria-labelledby="title desc">
+  <title id="title">Framebuffer update pipeline</title>
+  <desc id="desc">DRM damage expands to complete panel rows, which are rendered and compared using desired and displayed buffers. Changed tagged rows are packed into two shared TX slots and sent by an ordered SPI worker to CE0 or optional CE1. Only successful SPI transfers update displayed. Conversion of the next update can run during SPI transfer. Full regeneration uses this same pipeline; detailed conditions and retry behavior are explained in the README.</desc>
+
+  <defs>
+    <style>
+      text {
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        fill: #0f172a;
+      }
+      .title { font-size: 28px; font-weight: 700; }
+      .stage { font-size: 11px; font-weight: 700; }
+      .card-title { font-size: 20px; font-weight: 700; }
+      .caption { font-size: 14px; fill: #334155; }
+      .label { font-size: 13px; fill: #475569; }
+    </style>
+  </defs>
+
+  <rect x="1" y="1" width="1198" height="462" rx="20" fill="#f8fafc" stroke="#dbe3ef" stroke-width="2"/>
+  <text class="title" x="40" y="52">Framebuffer Update Pipeline</text>
+
+  <!-- Main flow: damage, rendering, comparison, batching, and SPI. -->
+  <line x1="242" y1="218" x2="261" y2="218" stroke="#2563eb" stroke-width="2.2"/>
+  <polygon points="258,212 266,218 258,224" fill="#2563eb"/>
+  <line x1="472" y1="218" x2="491" y2="218" stroke="#2563eb" stroke-width="2.2"/>
+  <polygon points="488,212 496,218 488,224" fill="#2563eb"/>
+  <line x1="702" y1="218" x2="721" y2="218" stroke="#2563eb" stroke-width="2.2"/>
+  <polygon points="718,212 726,218 718,224" fill="#2563eb"/>
+  <line x1="932" y1="218" x2="951" y2="218" stroke="#2563eb" stroke-width="2.2"/>
+  <polygon points="948,212 956,218 948,224" fill="#2563eb"/>
+
+  <!-- Damage expands to the full width of each affected panel row. -->
+  <rect x="40" y="96" width="202" height="244" rx="15" fill="#ffffff" stroke="#cbd5e1"/>
+  <circle cx="70" cy="127" r="13" fill="#dbeafe"/>
+  <text class="stage" x="70" y="131" text-anchor="middle">01</text>
+  <text class="card-title" x="92" y="134">Damage</text>
+  <g transform="translate(58 174)">
+    <rect width="166" height="100" rx="8" fill="#f8fafc" stroke="#94a3b8"/>
+    <line x1="33.2" y1="0" x2="33.2" y2="100" stroke="#d7dee8"/>
+    <line x1="66.4" y1="0" x2="66.4" y2="100" stroke="#d7dee8"/>
+    <line x1="99.6" y1="0" x2="99.6" y2="100" stroke="#d7dee8"/>
+    <line x1="132.8" y1="0" x2="132.8" y2="100" stroke="#d7dee8"/>
+    <line x1="0" y1="20" x2="166" y2="20" stroke="#d7dee8"/>
+    <line x1="0" y1="40" x2="166" y2="40" stroke="#d7dee8"/>
+    <line x1="0" y1="60" x2="166" y2="60" stroke="#d7dee8"/>
+    <line x1="0" y1="80" x2="166" y2="80" stroke="#d7dee8"/>
+    <rect x="1" y="40" width="164" height="20" fill="#bfdbfe"/>
+    <line x1="1" y1="40" x2="165" y2="40" stroke="#2563eb" stroke-width="2"/>
+    <line x1="1" y1="60" x2="165" y2="60" stroke="#2563eb" stroke-width="2"/>
+    <rect x="113" y="43" width="25" height="14" rx="3" fill="#2563eb"/>
+  </g>
+  <text class="caption" x="141" y="317" text-anchor="middle">Full-width panel rows</text>
+
+  <!-- Rendering produces tagged rows in the selected panel color mode. -->
+  <rect x="270" y="96" width="202" height="244" rx="15" fill="#ffffff" stroke="#cbd5e1"/>
+  <circle cx="300" cy="127" r="13" fill="#ede9fe"/>
+  <text class="stage" x="300" y="131" text-anchor="middle">02</text>
+  <text class="card-title" x="322" y="134">Render</text>
+  <g transform="translate(288 168)">
+    <rect y="14" width="28" height="30" rx="5" fill="#ef4444"/>
+    <rect x="33" y="14" width="28" height="30" rx="5" fill="#22c55e"/>
+    <rect x="66" y="14" width="28" height="30" rx="5" fill="#3b82f6"/>
+    <line x1="105" y1="29" x2="127" y2="29" stroke="#7c3aed" stroke-width="2"/>
+    <polygon points="124,24 131,29 124,34" fill="#7c3aed"/>
+    <rect x="137" y="14" width="7" height="30" rx="2" fill="#111827"/>
+    <rect x="148" y="14" width="7" height="30" rx="2" fill="#a855f7"/>
+    <rect x="159" y="14" width="7" height="30" rx="2" fill="#facc15"/>
+    <rect y="72" width="166" height="43" rx="7" fill="#f5f3ff" stroke="#c4b5fd"/>
+    <rect x="8" y="81" width="32" height="25" rx="4" fill="#7c3aed"/>
+    <text x="24" y="98" text-anchor="middle" font-size="11" style="fill: #ffffff">tag</text>
+    <rect x="48" y="84" width="18" height="19" rx="2" fill="#8b5cf6"/>
+    <rect x="71" y="84" width="18" height="19" rx="2" fill="#a78bfa"/>
+    <rect x="94" y="84" width="18" height="19" rx="2" fill="#c4b5fd"/>
+    <rect x="117" y="84" width="18" height="19" rx="2" fill="#8b5cf6"/>
+    <rect x="140" y="84" width="18" height="19" rx="2" fill="#a78bfa"/>
+  </g>
+  <text class="caption" x="371" y="317" text-anchor="middle">2 / 8 / 64 colors</text>
+
+  <!-- Desired holds the latest rows; displayed records successful transfers. -->
+  <rect x="500" y="96" width="202" height="244" rx="15" fill="#ffffff" stroke="#cbd5e1"/>
+  <circle cx="530" cy="127" r="13" fill="#ccfbf1"/>
+  <text class="stage" x="530" y="131" text-anchor="middle">03</text>
+  <text class="card-title" x="552" y="134">Compare</text>
+  <g transform="translate(518 168)">
+    <text class="label" x="35" y="12" text-anchor="middle">desired</text>
+    <text class="label" x="131" y="12" text-anchor="middle">displayed</text>
+    <rect y="27" width="70" height="15" rx="3" fill="#cbd5e1"/>
+    <rect x="96" y="27" width="70" height="15" rx="3" fill="#cbd5e1"/>
+    <text class="label" x="83" y="39" text-anchor="middle">=</text>
+    <rect y="51" width="70" height="15" rx="3" fill="#14b8a6"/>
+    <rect x="96" y="51" width="70" height="15" rx="3" fill="#fde68a"/>
+    <line x1="79" y1="54" x2="87" y2="62" stroke="#0f766e" stroke-width="1.5"/>
+    <line x1="87" y1="54" x2="79" y2="62" stroke="#0f766e" stroke-width="1.5"/>
+    <rect y="75" width="70" height="15" rx="3" fill="#cbd5e1"/>
+    <rect x="96" y="75" width="70" height="15" rx="3" fill="#cbd5e1"/>
+    <text class="label" x="83" y="87" text-anchor="middle">=</text>
+    <rect y="99" width="70" height="15" rx="3" fill="#2dd4bf"/>
+    <rect x="96" y="99" width="70" height="15" rx="3" fill="#fbbf24"/>
+    <line x1="79" y1="102" x2="87" y2="110" stroke="#0f766e" stroke-width="1.5"/>
+    <line x1="87" y1="102" x2="79" y2="110" stroke="#0f766e" stroke-width="1.5"/>
+  </g>
+  <text class="caption" x="601" y="317" text-anchor="middle">Keep changed rows</text>
+
+  <!-- Two shared slots decouple conversion from ordered SPI transmission. -->
+  <rect x="730" y="96" width="202" height="244" rx="15" fill="#ffffff" stroke="#cbd5e1"/>
+  <circle cx="760" cy="127" r="13" fill="#ffedd5"/>
+  <text class="stage" x="760" y="131" text-anchor="middle">04</text>
+  <text class="card-title" x="782" y="134">TX slots ×2</text>
+  <g transform="translate(748 168)">
+    <rect width="166" height="48" rx="7" fill="#ffedd5" stroke="#fb923c"/>
+    <text class="label" x="10" y="18">Ready</text>
+    <rect x="10" y="26" width="43" height="14" rx="3" fill="#fb923c"/>
+    <rect x="61" y="26" width="43" height="14" rx="3" fill="#fdba74"/>
+    <rect x="112" y="26" width="43" height="14" rx="3" fill="#fb923c"/>
+    <rect y="66" width="166" height="48" rx="7" fill="#dcfce7" stroke="#86efac"/>
+    <text class="label" x="10" y="84">Sending</text>
+    <rect x="10" y="92" width="145" height="14" rx="3" fill="#86efac"/>
+  </g>
+  <text class="caption" x="831" y="317" text-anchor="middle">Pack tagged rows</text>
+
+  <!-- The worker sends row batches to the selected panel. -->
+  <rect x="960" y="96" width="202" height="244" rx="15" fill="#ffffff" stroke="#cbd5e1"/>
+  <circle cx="990" cy="127" r="13" fill="#dcfce7"/>
+  <text class="stage" x="990" y="131" text-anchor="middle">05</text>
+  <text class="card-title" x="1012" y="134">SPI → LCD</text>
+  <g transform="translate(978 168)">
+    <line x1="0" y1="42" x2="37" y2="42" stroke="#16a34a" stroke-width="2" stroke-dasharray="4 4"/>
+    <circle cx="9" cy="42" r="3" fill="#16a34a"/>
+    <circle cx="23" cy="42" r="3" fill="#16a34a"/>
+    <rect x="44" width="122" height="114" rx="10" fill="#1e293b"/>
+    <rect x="53" y="9" width="104" height="85" rx="5" fill="#dbeafe"/>
+    <polygon points="54,82 81,51 101,73 124,41 156,81 156,94 54,94" fill="#93c5fd"/>
+    <circle cx="136" cy="27" r="8" fill="#f59e0b"/>
+    <circle cx="105" cy="104" r="3" fill="#94a3b8"/>
+  </g>
+  <text class="caption" x="1061" y="317" text-anchor="middle">CE0 / optional CE1</text>
+
+  <!-- Only successful transfers update displayed. -->
+  <line x1="1061" y1="340" x2="1061" y2="372" stroke="#0f766e" stroke-width="2"/>
+  <line x1="1061" y1="372" x2="601" y2="372" stroke="#0f766e" stroke-width="2"/>
+  <line x1="601" y1="372" x2="601" y2="348" stroke="#0f766e" stroke-width="2"/>
+  <polygon points="595,351 601,343 607,351" fill="#0f766e"/>
+  <text class="caption" x="831" y="363" text-anchor="middle">Success → displayed</text>
+
+  <!-- Conversion of the next update overlaps transfer of an older batch. -->
+  <rect x="40" y="398" width="1122" height="42" rx="12" fill="#eff6ff" stroke="#93c5fd"/>
+  <text x="601" y="424" text-anchor="middle" font-size="15" style="fill: #1d4ed8">Next conversion runs during SPI transfer</text>
+</svg>

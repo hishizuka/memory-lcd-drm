@@ -898,6 +898,8 @@ make -C tests check
 
 ### 更新パイプライン
 
+<img src="docs/images/update-pipeline.svg" alt="DRM の変更通知から行変換、desired/displayed 比較、2個の TX slot、順序付き SPI 転送までの更新処理フロー">
+
 SPI で行データを送っている間に、CPU は次の更新の画像変換を進められます。
 
 更新パスは `sharp_drm_pipe_update()` -> `sharp_drm_fb_dirty()` ->
