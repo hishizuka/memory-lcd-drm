@@ -58,6 +58,7 @@ rendering quality and display updates.
   ordered dithering, and 64-color blue-noise dithering. NV12 video uses NEON
   for part of its 64-color conversion; error diffusion does not use it.
   SPI transfer speed can still limit the overall display update rate.
+  See [Benchmarks](#benchmarks) for measurements.
 * **Runtime adjustments**: Color mode, dithering, monochrome threshold,
   inversion, blinking, and clearing are exposed as sysfs module parameters.
   Brightness uses the standard Linux backlight class.
@@ -393,7 +394,8 @@ With `dual_panel=1`, set the first panel (CE0) through `spi_speed` and
 the second panel (CE1) through `spi_speed_secondary` (default: `4000000`).
 Set both parameters when both
 panels support 7 MHz. These are SPI upper limits; the controller may use a
-lower actual clock.
+lower actual clock. See [Full-Screen Update Time](#full-screen-update-time)
+for full-screen transfer times by panel, color mode, and SPI speed.
 Raspberry Pi `config.txt` ignores characters past column 98. Put extra
 parameters on a following `dtparam=` line before the next `dtoverlay=` line.
 
@@ -680,6 +682,8 @@ Computational cost and partial-update behavior:
 All these methods require work proportional to the number of pixels processed,
 but differ in work per pixel and the conversion scope for partial updates.
 No fixed speed ratio is claimed; timing depends on the environment and image.
+See [Image Processing Time by Color Mode and Dithering](#image-processing-time-by-color-mode-and-dithering)
+for example measurements.
 Even when all rows are converted, only rows requiring an update after comparison
 are sent over SPI.
 
@@ -800,7 +804,9 @@ With the supplied FFmpeg patches, combine hardware decoding with DRM output
 are provided. The driver accepts RGB images (XRGB8888) and the NV12 format
 used for video, and performs panel color conversion and SPI transmission.
 Tests with this FFmpeg on Raspberry Pi Zero have demonstrated a substantial
-reduction in CPU load during video playback.
+reduction in CPU load during video playback. See
+[CPU Usage During Video Playback](#cpu-usage-during-video-playback) for
+measurements.
 
 ### Optional Initialization Service and Troubleshooting
 
@@ -869,6 +875,155 @@ Modified files are backed up with a `.save` suffix. Reboot to release the
 display. Separate `dtparam=backlight_*`, `dtparam=spi_speed*`, and similar
 lines are not removed automatically; check `config.txt` and remove settings
 that were added specifically for this driver.
+
+## Benchmarks
+
+Image processing time covers color reduction, detection of changed rows, and
+preparation of transmit data. It excludes image file loading and SPI transfer.
+`cacheable_buffers=1` in the conditions below is an option that speeds up
+image processing for CPU-only rendering; leave it disabled when rendering from
+a GPU (see [Module Load Settings](#module-load-settings)).
+
+### Comparison with the Former Python Version
+
+Before this driver, color reduction and SPI transmission were done in Python
+with [py_mip_sample](https://github.com/hishizuka/py_mip_sample). It reduced
+colors in bulk with NumPy and sent only changed rows through `spidev` (2019)
+or `pigpio` (2020). The comparison uses **Raspberry Pi Zero W (32-bit, no
+NEON), JDI 400x240, 8 colors, no dithering, SPI 4 MHz**.
+
+| Method | Image processing time |
+| --- | ---: |
+| Former Python version: NumPy + spidev (2019) | 31.31 ms |
+| Former Python version: NumPy + pigpio (2020) | 30.67 ms |
+| Current DRM driver (2026, `cacheable_buffers=1`) | **3.92 ms** |
+
+The Python values come from logs at the time. The current driver value is the
+average of 68 full-screen black/white toggles measured on October 8, 2026.
+Input images and OS versions differ, so treat this as a rough comparison.
+
+### Image Processing Time by Color Mode and Dithering
+
+Measured on October 8, 2026 with the following two devices. Common conditions
+are **CPU 1 GHz, `cacheable_buffers=1`, SPI 4 MHz, Raspberry Pi OS Trixie**.
+
+| Device | Image size | Panel |
+| --- | --- | --- |
+| Raspberry Pi Zero W | 400x240 | JDI 2.7-inch |
+| Raspberry Pi Zero 2 W | 272x451 | AUO 3.4-inch |
+
+#### Raspberry Pi Zero W
+
+Average of 136 runs processing the same 17 images in sequence on a Pi Zero W,
+which cannot use NEON.
+
+| Mode | `dither_algo` | Image processing time |
+| --- | --- | ---: |
+| 8 colors, no dithering | `0` | 3.89 ms |
+| 27 apparent colors, ordered dithering | `2` | 5.41 ms |
+| 125 apparent colors, ordered dithering | `3` | 4.59 ms |
+| 8 colors, error diffusion | `6` | 26.49 ms |
+
+#### Raspberry Pi Zero 2 W
+
+NEON is a CPU feature that computes multiple pixels at once. The same four
+images were processed with and without NEON; each value is the average of 64
+runs.
+
+| Mode | `dither_algo` | Without NEON | With NEON |
+| --- | --- | ---: | ---: |
+| 8 colors, no dithering | `0` | 1.51 ms | 0.78 ms |
+| 27 apparent colors, ordered dithering | `2` | 2.52 ms | 0.84 ms |
+| 125 apparent colors, ordered dithering | `3` | 1.61 ms | 0.84 ms |
+| 8 colors, error diffusion | `6` | 20.08 ms | — (not supported) |
+| 64 colors, no dithering | `0` | 1.97 ms | 1.08 ms |
+| 343 apparent colors, ordered dithering | `4` | 4.92 ms | 1.65 ms |
+| 2197 apparent colors, ordered dithering | `5` | 2.98 ms | 1.78 ms |
+| 64 colors, blue noise | `5` + `blue_noise_2197=1` | 3.89 ms | 1.91 ms |
+| 64 colors, error diffusion | `6` | 22.00 ms | — (not supported) |
+
+With NEON, 343 apparent colors dropped from 4.92 ms to 1.65 ms. Error
+diffusion does not use NEON and takes longer than ordered dithering or blue
+noise.
+
+A higher apparent color count does not always mean slower conversion. 27
+apparent colors switches thresholds separately for R, G, and B, and 343
+apparent colors compares each channel against up to three thresholds. In
+contrast, 125 apparent colors uses the same threshold for all three channels,
+and 2197 apparent colors quantizes through a lookup table, so both need fewer
+comparisons.
+
+### Full-Screen Update Time
+
+This is the time to send a full screen of each panel over SPI. Theoretical
+values are calculated as `transfer bytes × 8 ÷ SPI frequency`, where transfer
+bytes include pixel data, row headers, and the transfer trailer. Theoretical
+fps is the reciprocal and excludes image processing and waiting.
+
+JDI measurements are medians of 136 full-screen black/white toggles (68 per
+round, two rounds) on a Pi Zero W (CPU 1 GHz, no dithering) on October 16,
+2026. They were re-measured with the console connection kept and blanking of
+the active TTY disabled, and the toggles were visually confirmed during the
+measurement. Each value includes copying the image, notifying DRM of the
+change, and waiting for SPI transmission to finish; measured fps is the
+reciprocal of the median. These values do not measure the LCD's optical
+response time. This measurement used the driver already installed on the Pi
+(without `cacheable_buffers` support), a different build from
+[Image Processing Time by Color Mode and Dithering](#image-processing-time-by-color-mode-and-dithering).
+
+AUO measurements were taken on October 16, 2026 on a Compute Module 0 treated
+as equivalent to a Pi Zero 2 W (CPU 1 GHz, no dithering,
+`cacheable_buffers=1`), using the same 136 black/white toggles (68 per round,
+two rounds). The timing scope and fps calculation are the same as for JDI.
+
+| Panel | Resolution | Colors | SPI | Theoretical transfer time | Theoretical fps | Measured time | Measured fps |
+| --- | --- | --- | --- | ---: | ---: | ---: | ---: |
+| JDI LPM027M128B | 400x240 | 2 | 4 MHz | 24.96 ms | 40 fps | 34.73 ms | 28.8 fps |
+| JDI LPM027M128B | 400x240 | 8 | 4 MHz | 72.96 ms | 14 fps | 81.84 ms | 12.2 fps |
+| AUO U340QBN01 | 272x451 | 8 | 7 MHz | 53.61 ms | 19 fps | 56.07 ms | 17.8 fps |
+| AUO U340QBN01 | 272x451 | 64 | 7 MHz | 107.21 ms | 9 fps | 110.84 ms | 9.0 fps |
+
+All 272 updates sent 240 rows each for JDI and 451 rows each for AUO, with no
+SPI errors or coalesced updates in either case. Each AUO update sent 46,906
+bytes at 8 colors and 93,812 bytes at 64 colors; 64-color updates were split
+into two SPI messages.
+
+### CPU Usage During Video Playback
+
+Paths using the hardware decoder and the
+[dedicated FFmpeg build](contrib/ffmpeg-rpi-isp/README.md) were compared with
+the distribution FFmpeg. Leaving decoding and color conversion to hardware and
+passing images directly to the driver through DMA-BUF reduces CPU work and
+image copies (see [Video Playback](#video-playback)).
+
+A 400x240, 30 fps, 61-second H.264 video was played on a Raspberry Pi Zero W
+(1 GHz) to compare CPU usage for each path. The panel was JDI 400x240, 8
+colors (27 apparent colors with ordered dithering, `dither_algo=2`), SPI
+4 MHz. Each value is the average of two runs. CPU usage is system-wide,
+including conversion inside the kernel (0.8% when idle).
+
+| Path | CPU usage | Panel transmissions |
+| --- | ---: | ---: |
+| Distribution FFmpeg: software decoding | 97.2% | 11.4/s |
+| Distribution FFmpeg: hardware decoding | 64.0% | 12.4/s |
+| Distribution FFmpeg: hardware decoding + BGR conversion | 59.7% | 12.3/s |
+| Dedicated FFmpeg: BGR4 output to fbdev | 41.7% | 13.5/s |
+| Dedicated FFmpeg: BGR4 output directly to DRM via DMA-BUF | **33.9%** | 20.7/s |
+
+The direct DRM path used about one third of the CPU of software decoding.
+Without dithering (`dither_algo=0`), it used 29.7%.
+
+In every path, FFmpeg processed 1,830 frames at 30 fps without dropping any.
+However, a full-screen transfer at 4 MHz SPI takes about 73 ms
+([Full-Screen Update Time](#full-screen-update-time)), so not every frame of
+30 fps video reaches the panel. Of the frames arriving before a transfer
+finishes, only the latest is sent. "Panel transmissions" counts SPI
+transmissions by the driver. Each transmission sends only changed rows, so it
+does not match the display fps.
+
+For a comparison by FFmpeg process CPU time, see the
+[FFmpeg README](contrib/ffmpeg-rpi-isp/README.md#raspberry-pi-zero-result).
+Because the metrics differ, its reduction ratios do not match the table above.
 
 ## Developer Reference
 
