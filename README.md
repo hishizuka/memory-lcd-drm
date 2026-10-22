@@ -100,16 +100,16 @@ settings for each panel. U340QBN01 dual-panel mode forces `colors=64`.
 An AUO U340QBN01 (Bryton Rider S800) displaying a 3D map in 64 colors on a
 272x451 panel.
 
-<img src="docs/images/auo-u340qbn01-64color.jpg" alt="An AUO U340QBN01 in a portrait enclosure displaying 64 colors">
+<img src="docs/images/auo-u340qbn01-64color.jpg" alt="An AUO U340QBN01 in a portrait enclosure displaying 64 colors" width="320">
 
 Two of the same panels side by side form a 544x451 display.
 
-<img src="docs/images/dual-panel-544x451.jpg" alt="Two AUO U340QBN01 panels displaying a 544x451 image in 64 colors">
+<img src="docs/images/dual-panel-544x451.jpg" alt="Two AUO U340QBN01 panels displaying a 544x451 image in 64 colors" width="480">
 
 The back of the dual-panel board, showing a Raspberry Pi Zero W connected
 to two panels. This assembly photo does not show the individual signal connections.
 
-<img src="docs/images/hardware-overview.jpg" alt="The back of a board connecting a Raspberry Pi Zero W and two AUO panels">
+<img src="docs/images/hardware-overview.jpg" alt="The back of a board connecting a Raspberry Pi Zero W and two AUO panels" width="480">
 
 ## Connections and Pin Assignment
 

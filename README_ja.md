@@ -95,16 +95,16 @@ U340QBN01 をデュアルパネルモードで使うときは `colors=64` が強
 
 AUO U340QBN01 (Bryton Rider S800) の64色表示例。272x451のパネルで3D地図を表示しています。
 
-<img src="docs/images/auo-u340qbn01-64color.jpg" alt="縦型ケースに組み込んだ AUO U340QBN01 の64色表示">
+<img src="docs/images/auo-u340qbn01-64color.jpg" alt="縦型ケースに組み込んだ AUO U340QBN01 の64色表示" width="320">
 
 同じパネルを横に2枚並べた、544x451のデュアルパネル表示です。
 
-<img src="docs/images/dual-panel-544x451.jpg" alt="AUO U340QBN01 を2枚並べた544x451の64色表示">
+<img src="docs/images/dual-panel-544x451.jpg" alt="AUO U340QBN01 を2枚並べた544x451の64色表示" width="480">
 
 デュアルパネル基板の裏面。Raspberry Pi Zero W と2枚のパネルを接続した
 組み立て例です。写真では個々の信号配線までは確認できません。
 
-<img src="docs/images/hardware-overview.jpg" alt="Raspberry Pi Zero W と2枚の AUO パネルを接続した基板の裏面">
+<img src="docs/images/hardware-overview.jpg" alt="Raspberry Pi Zero W と2枚の AUO パネルを接続した基板の裏面" width="480">
 
 ## 接続とピン配置の変更
 
