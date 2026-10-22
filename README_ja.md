@@ -7,7 +7,7 @@ https://github.com/hishizuka/memory-lcd-drm
 Sharp モノクロ Memory LCD、JDI 8色 MIP パネル、AUO 64色 MIP パネルを含む、
 Raspberry Pi 向け SPI メモリ液晶パネル用の Linux DRM/KMS カーネルドライバです。
 
-<img src="docs/images/jdi_4.4inch.jpg" alt="地図を表示した JDI 4.4インチ MIP 液晶パネル">
+<img src="docs/images/panels-in-use.png" alt="地図を表示した JDI 4.4インチ MIP 液晶パネル">
 
 JDI 4.4インチ MIP 液晶の表示例。
 

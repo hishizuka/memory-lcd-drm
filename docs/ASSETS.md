@@ -7,6 +7,8 @@ distributed under the repository's [GPL-2.0-or-later license](../LICENSE).
 | Files | Source |
 |---|---|
 | `docs/images/hardware-overview.jpg`, `panel-lineup.jpg`, `jdi_4.4inch.jpg`, `dual-panel-544x451.jpg`, `auo-u340qbn01-64color.jpg` | Photographs by hishizuka |
+| `docs/images/panels-in-use.png` | Composite of `jdi_4.4inch.jpg`, `auo-u340qbn01-64color.jpg`, and `dual-panel-544x451.jpg` with panel labels |
+| `docs/images/social-preview.png` | GitHub social preview; the same composite with the repository name and description |
 | `docs/images/rendering-source.png` | Original image created by hishizuka |
 | `docs/images/rendering-modes.png` | Generated from the original image with the driver's conversion code and `scripts/generate_rendering_comparison.py` |
 | `docs/images/ordered-dithering-en.png` | Generated with `scripts/generate_ordered_dithering.py`; 27/125-color patterns use the driver's conversion code |

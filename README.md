@@ -8,7 +8,7 @@ A Linux DRM/KMS kernel driver for SPI memory LCD panels on Raspberry Pi,
 including Sharp monochrome Memory LCDs, JDI 8-color MIP panels, and AUO
 64-color MIP panels.
 
-<img src="docs/images/jdi_4.4inch.jpg" alt="A JDI 4.4-inch MIP LCD displaying a map">
+<img src="docs/images/panels-in-use.png" alt="A JDI 4.4-inch MIP LCD displaying a map">
 
 A JDI 4.4-inch MIP LCD in use.
 
